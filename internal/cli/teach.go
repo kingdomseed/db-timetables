@@ -690,7 +690,7 @@ func newLearningsListCmd(flags *rootFlags) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List recorded learnings",
+		Short: "List locally taught query→resource learnings (optional --query/--source/--resource/--action filters). Use to inspect recall memory; not a station board. --warnings reads teach.log instead.",
 		Example: `  db-timetables-pp-cli learnings list --agent
   db-timetables-pp-cli learnings list --query "<substring>"
   db-timetables-pp-cli learnings list --warnings --agent`,

@@ -40,7 +40,7 @@ func RegisterTools(s *server.MCPServer) {
 	installFreshTenantGate(s)
 	s.AddTool(
 		mcplib.NewTool("fchg_get",
-			mcplib.WithDescription("Returns a Timetable object (see Timetable) that contains all known changes for the station given by evaNo. The data includes all known changes from now on until ndefinitely into the future. Once changes become obsolete (because their trip departs from the station) they are removed from this resource. Changes may include messages. On event level, they usually contain one or more of the 'changed' attributes ct, cp, cs or cpth. Changes may also include 'planned' attributes if there is no associated planned data for the change (e.g. an unplanned stop or trip). Full changes are updated every 30s and should be cached for that period by web caches. Required: evaNo (default: 8000105)."),
+			mcplib.WithDescription("Fetch all known future changes for one station (evaNo). Returns Timetable XML with changed time/platform/status. Prefer board for a joined live board; use this only for the raw full-change feed. Required: evaNo."),
 			mcplib.WithString("evaNo", mcplib.Required(), mcplib.Description("Station EVA-number.")),
 			mcplib.WithReadOnlyHintAnnotation(true),
 			mcplib.WithDestructiveHintAnnotation(false),
@@ -50,7 +50,7 @@ func RegisterTools(s *server.MCPServer) {
 	)
 	s.AddTool(
 		mcplib.NewTool("plan_get",
-			mcplib.WithDescription("Returns a Timetable object (see Timetable) that contains planned data for the specified station (evaNo) within the hourly time slice given by date (format YYMMDD) and hour (format HH). The data includes stops for all trips that arrive or depart within that slice. There is a small overlap between slices since some trips arrive in one slice and depart in another. Planned data does never contain messages. On event level, planned data contains the 'plannned' attributes pt, pp, ps and ppth while the 'changed' attributes ct, cp, cs and cpth are absent. Planned data is generated many hours in advance and is static, i.e. it does never change. It should be cached by web caches.public interface allows access to information about a station. Required: evaNo (default: 8000105), date (default: 220930), hour."),
+			mcplib.WithDescription("Fetch the static planned timetable for one station-hour. Required: evaNo, date (YYMMDD), hour (HH). Returns planned times/platforms only (no delays). Prefer board for the live overlay."),
 			mcplib.WithString("evaNo", mcplib.Required(), mcplib.Description("Station EVA-number.")),
 			mcplib.WithString("date", mcplib.Required(), mcplib.Description("Date in format YYMMDD.")),
 			mcplib.WithString("hour", mcplib.Required(), mcplib.Description("Hour in format HH.")),
@@ -62,7 +62,7 @@ func RegisterTools(s *server.MCPServer) {
 	)
 	s.AddTool(
 		mcplib.NewTool("rchg_get",
-			mcplib.WithDescription("Returns a Timetable object (see Timetable) that contains all recent changes for the station given by evaNo. Recent changes are always a subset of the full changes. They may equal full changes but are typically much smaller. Data includes only those changes that became known within the last 2 minutes. A client that updates its state in intervals of less than 2 minutes should load full changes initially and then proceed to periodically load only the recent changes in order to save bandwidth. Recent changes are updated every 30s as well and should be cached for that period by web caches. Required: evaNo (default: 8000105)."),
+			mcplib.WithDescription("Fetch changes that became known in the last two minutes for one station (evaNo). Smaller than fchg. Prefer watch after a cached plan+fchg snapshot. Required: evaNo."),
 			mcplib.WithString("evaNo", mcplib.Required(), mcplib.Description("Station EVA-number.")),
 			mcplib.WithReadOnlyHintAnnotation(true),
 			mcplib.WithDestructiveHintAnnotation(false),
@@ -72,7 +72,7 @@ func RegisterTools(s *server.MCPServer) {
 	)
 	s.AddTool(
 		mcplib.NewTool("station_get",
-			mcplib.WithDescription("This public interface allows access to information about a station. Required: pattern (default: BLS). Returns array of StationData."),
+			mcplib.WithDescription("Look up stations by name prefix, EVA number, DS100/RL100 code, or wildcard. Returns station ids and names so you can resolve evaNo before board/plan/fchg. Required: pattern."),
 			mcplib.WithString("pattern", mcplib.Required(), mcplib.Description("can be a station name (prefix), eva number, ds100/rl100 code, wildcard (*)")),
 			mcplib.WithReadOnlyHintAnnotation(true),
 			mcplib.WithDestructiveHintAnnotation(false),
@@ -844,7 +844,7 @@ func handleContext(_ context.Context, _ mcplib.CallToolRequest) (*mcplib.CallToo
 			{"name": "Platform-change list", "command": "platforms", "description": "List only the trains at a station whose platform changed.", "rationale": "A local/overlaid filter on planned vs changed platform; the API only returns raw XML attributes.", "via": "mcp-command-mirror"},
 			{"name": "Cancellations this hour", "command": "cancellations", "description": "List cancellations at a station for the current hour.", "rationale": "Filters overlaid plan+fchg (or the local slice) for cancelled events the raw endpoints do not isolate.", "via": "mcp-command-mirror"},
 			{"name": "Delay list", "command": "delays", "description": "List late trains at a station with delay minutes.", "rationale": "Computes delay from planned vs changed timestamps after the overlay join.", "via": "mcp-command-mirror"},
-			{"name": "Cheap change watch", "command": "watch", "description": "Apply the last two minutes of rchg onto a cached plan+fchg snapshot.", "rationale": "Only works if a local snapshot exists; official docs tell clients to poll rchg after fchg", "via": "mcp-command-mirror"},
+			{"name": "Cheap change watch", "command": "watch", "description": "Apply the last two minutes of rchg onto a cached plan+fchg snapshot.", "rationale": "Only works if a local snapshot exists; official docs tell clients to poll rchg after fchg, and no competitor CLI does that against SQLite.", "via": "mcp-command-mirror"},
 		},
 		"playbook": []map[string]string{
 			{"topic": "Live station board", "insight": "Requires joining the static hourly plan with fchg changes; no single Marketplace endpoint returns a usable board."},

@@ -2,11 +2,44 @@
   "api_name": "db-timetables",
   "novelty_score": 8,
   "alternatives": [
-    {"name": "db-fahrplan-mcp", "url": "https://github.com/eric134422/db-fahrplan-mcp", "language": "Python", "stars": 0, "command_count": 4},
-    {"name": "db-timetable-mcp", "url": "https://github.com/jorekai/db-timetable-mcp", "language": "TypeScript", "stars": 0, "command_count": 5},
-    {"name": "deutsche-bahn", "url": "https://github.com/mbbrueckner/deutsche-bahn", "language": "Python", "stars": 0, "command_count": 6}
+    {
+      "name": "db-fahrplan-mcp",
+      "url": "https://github.com/eric134422/db-fahrplan-mcp",
+      "language": "Python",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 4,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "db-timetable-mcp",
+      "url": "https://github.com/jorekai/db-timetable-mcp",
+      "language": "TypeScript",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 5,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "deutsche-bahn",
+      "url": "https://github.com/mbbrueckner/deutsche-bahn",
+      "language": "Python",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 6,
+      "has_json_output": false,
+      "has_auth_support": false
+    }
   ],
-  "auth": {},
+  "gaps": [],
+  "patterns": [],
+  "recommendation": "proceed",
+  "researched_at": "2026-08-17T11:10:20Z",
   "novel_features": [
     {
       "name": "Live station board",
@@ -54,23 +87,98 @@
       "group": "Local state that compounds"
     }
   ],
+  "novel_features_built": [
+    {
+      "name": "Live station board",
+      "command": "board",
+      "description": "See the live board for one station this hour: planned trains with delays, platform moves, and cancels overlaid.",
+      "rationale": "Requires joining the static hourly plan with fchg changes; no single Marketplace endpoint returns a usable board.",
+      "example": "db-timetables-pp-cli board --eva-no 8000105 --agent --select train,planned_time,delay_minutes,platform,cancelled",
+      "why_it_matters": "Reach for this instead of calling plan and fchg separately when a traveler or agent wants the truth at a station.",
+      "group": "Live station board"
+    },
+    {
+      "name": "Platform-change list",
+      "command": "platforms",
+      "description": "List only the trains at a station whose platform changed.",
+      "rationale": "A local/overlaid filter on planned vs changed platform; the API only returns raw XML attributes.",
+      "example": "db-timetables-pp-cli platforms --eva-no 8000105 --json",
+      "why_it_matters": "Use this when the question is which platforms moved, not the full board.",
+      "group": "Live station board"
+    },
+    {
+      "name": "Cancellations this hour",
+      "command": "cancellations",
+      "description": "List cancellations at a station for the current hour.",
+      "rationale": "Filters overlaid plan+fchg (or the local slice) for cancelled events the raw endpoints do not isolate.",
+      "example": "db-timetables-pp-cli cancellations --eva-no 8000105 --json",
+      "why_it_matters": "Use this when the question is what was cancelled, not every delay.",
+      "group": "Live station board"
+    },
+    {
+      "name": "Delay list",
+      "command": "delays",
+      "description": "List late trains at a station with delay minutes.",
+      "rationale": "Computes delay from planned vs changed timestamps after the overlay join.",
+      "example": "db-timetables-pp-cli delays --eva-no 8000105 --json",
+      "why_it_matters": "Use this for late-but-running trains; cancellations are a different command.",
+      "group": "Live station board"
+    },
+    {
+      "name": "Cheap change watch",
+      "command": "watch",
+      "description": "Apply the last two minutes of rchg onto a cached plan+fchg snapshot.",
+      "rationale": "Only works if a local snapshot exists; official docs tell clients to poll rchg after fchg, and no competitor CLI does that against SQLite.",
+      "example": "db-timetables-pp-cli watch --eva-no 8000105 --json",
+      "why_it_matters": "Use this to poll cheaply after board/fchg; do not use it as the first fetch.",
+      "group": "Local state that compounds"
+    }
+  ],
+  "auth": {},
   "narrative": {
     "display_name": "Deutsche Bahn Timetables",
     "headline": "Official station boards: delay, platform, cancel — not a journey planner.",
     "value_prop": "A Go CLI for Deutsche Bahn's Marketplace Timetables API. Resolve a station, pull the hourly plan, overlay live changes, and keep a local slice so an agent can ask follow-ups without burning quota. This is not A to B, fares, or booking.",
     "auth_narrative": "Marketplace Anwendung credentials. Every request must send both headers: DB-Client-Id from DB_TIMETABLES_CLIENT_ID (or DB_CLIENT_ID) and DB-Api-Key from DB_TIMETABLES_API_KEY (or DB_API_KEY). Auth is configured only when both values are present. Create an Anwendung, subscribe it to Timetables, and export the two env vars. Do not commit keys.",
     "quickstart": [
-      {"command": "db-timetables-pp-cli doctor --dry-run", "comment": "Health check that works without hitting the API."},
-      {"command": "db-timetables-pp-cli station --pattern Frankfurt --dry-run", "comment": "Resolve a name or EVA without spending a live call."},
-      {"command": "db-timetables-pp-cli board --eva-no 8000105 --dry-run", "comment": "Show the live-board request (plan + fchg overlay) for Frankfurt Hbf."},
-      {"command": "db-timetables-pp-cli platforms --eva-no 8000105 --dry-run", "comment": "Platform-change filter for the same station."},
-      {"command": "db-timetables-pp-cli cancellations --eva-no 8000105 --dry-run", "comment": "Cancellations this hour."}
+      {
+        "command": "db-timetables-pp-cli doctor --dry-run",
+        "comment": "Health check that works without hitting the API."
+      },
+      {
+        "command": "db-timetables-pp-cli station --pattern Frankfurt --dry-run",
+        "comment": "Resolve a name or EVA without spending a live call."
+      },
+      {
+        "command": "db-timetables-pp-cli board --eva-no 8000105 --dry-run",
+        "comment": "Show the live-board request (plan + fchg overlay) for Frankfurt Hbf."
+      },
+      {
+        "command": "db-timetables-pp-cli platforms --eva-no 8000105 --dry-run",
+        "comment": "Platform-change filter for the same station."
+      },
+      {
+        "command": "db-timetables-pp-cli cancellations --eva-no 8000105 --dry-run",
+        "comment": "Cancellations this hour."
+      }
     ],
     "troubleshoots": [
-      {"symptom": "401/403 from Marketplace", "fix": "Export both DB_TIMETABLES_CLIENT_ID and DB_TIMETABLES_API_KEY. One header is not enough."},
-      {"symptom": "empty station results for a German name with umlauts", "fix": "Retry with EVA or DS100 (FF, 8000105). The official station pattern does not handle umlauts well."},
-      {"symptom": "plan looks on time but the train is late", "fix": "plan is static. Use board (plan+fchg overlay) or fchg."},
-      {"symptom": "429 / rate limit", "fix": "Marketplace is about 60 calls/min. Cache plan (static) and poll rchg after one fchg via watch."}
+      {
+        "symptom": "401/403 from Marketplace",
+        "fix": "Export both DB_TIMETABLES_CLIENT_ID and DB_TIMETABLES_API_KEY. One header is not enough."
+      },
+      {
+        "symptom": "empty station results for a German name with umlauts",
+        "fix": "Retry with EVA or DS100 (FF, 8000105). The official station pattern does not handle umlauts well."
+      },
+      {
+        "symptom": "plan looks on time but the train is late",
+        "fix": "plan is static. Use board (plan+fchg overlay) or fchg."
+      },
+      {
+        "symptom": "429 / rate limit",
+        "fix": "Marketplace is about 60 calls/min. Cache plan (static) and poll rchg after one fchg via watch."
+      }
     ],
     "when_to_use": "Use this CLI when the task is a station board: resolve EVA, show planned trains for an hour, overlay delays/platform/cancel, or poll recent changes. Prefer board for the live picture, platforms/cancellations/delays for filtered questions, and watch after a snapshot.",
     "anti_triggers": [
@@ -80,11 +188,31 @@
       "Do not use this CLI as a substitute for the official DB Navigator consumer app."
     ],
     "recipes": [
-      {"title": "Resolve Frankfurt Hbf", "command": "db-timetables-pp-cli station --pattern Frankfurt --agent --select stations.eva,stations.name,stations.ds100", "explanation": "Turn a name into EVA 8000105 before any board call."},
-      {"title": "Live board this hour", "command": "db-timetables-pp-cli board --eva-no 8000105 --agent --select train,planned_time,delay_minutes,platform,cancelled", "explanation": "Overlay plan+fchg and keep only the fields an agent needs."},
-      {"title": "Platform changes", "command": "db-timetables-pp-cli platforms --eva-no 8000105 --json", "explanation": "Only trains whose platform moved."},
-      {"title": "Cancellations this hour", "command": "db-timetables-pp-cli cancellations --eva-no 8000105 --json", "explanation": "Cancelled stops at the station for the current hour."},
-      {"title": "Cheap poll after a snapshot", "command": "db-timetables-pp-cli watch --eva-no 8000105 --json", "explanation": "Apply rchg onto the cached plan+fchg slice."}
+      {
+        "title": "Resolve Frankfurt Hbf",
+        "command": "db-timetables-pp-cli station --pattern Frankfurt --agent --select stations.eva,stations.name,stations.ds100",
+        "explanation": "Turn a name into EVA 8000105 before any board call."
+      },
+      {
+        "title": "Live board this hour",
+        "command": "db-timetables-pp-cli board --eva-no 8000105 --agent --select train,planned_time,delay_minutes,platform,cancelled",
+        "explanation": "Overlay plan+fchg and keep only the fields an agent needs."
+      },
+      {
+        "title": "Platform changes",
+        "command": "db-timetables-pp-cli platforms --eva-no 8000105 --json",
+        "explanation": "Only trains whose platform moved."
+      },
+      {
+        "title": "Cancellations this hour",
+        "command": "db-timetables-pp-cli cancellations --eva-no 8000105 --json",
+        "explanation": "Cancelled stops at the station for the current hour."
+      },
+      {
+        "title": "Cheap poll after a snapshot",
+        "command": "db-timetables-pp-cli watch --eva-no 8000105 --json",
+        "explanation": "Apply rchg onto the cached plan+fchg slice."
+      }
     ],
     "trigger_phrases": [
       "Frankfurt Hbf delays",
@@ -94,9 +222,5 @@
       "use db-timetables",
       "run db-timetables"
     ]
-  },
-  "gaps": [],
-  "patterns": [],
-  "recommendation": "proceed",
-  "researched_at": "2026-08-17T11:10:20Z"
+  }
 }

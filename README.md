@@ -1,10 +1,8 @@
 # db-timetables
 
-A CLI for Deutsche Bahn's official **Timetables** API (DB API Marketplace).
+**Official station boards: delay, platform, cancel — not a journey planner.**
 
-It answers station-board questions: which trains are planned at a station this hour, what changed (delay, platform, cancel), and what changed in the last two minutes. Built for agents and scripts. Printed with [CLI Printing Press](https://github.com/mvanhorn/cli-printing-press).
-
-This is not a journey planner. It will not search A→B, quote fares, or book tickets. There is no official self-serve API for those. It also does not scrape bahn.de.
+A Go CLI for Deutsche Bahn's Marketplace Timetables API. Resolve a station, pull the hourly plan, overlay live changes, and keep a local slice so an agent can ask follow-ups without burning quota. This is not A to B, fares, or booking.
 
 Learn more at [Deutsche Bahn Timetables](https://developers.deutschebahn.com/db-api-marketplace/apis/product/timetables).
 
@@ -28,18 +26,7 @@ Four Marketplace endpoints, plus traveler-facing overlays and a local store so a
 
 ## Authentication
 
-You need your own Marketplace Anwendung. Subscribe it to **Timetables**. The CLI sends both headers on every call:
-
-- `DB-Client-Id` ← `DB_TIMETABLES_CLIENT_ID` (or `DB_CLIENT_ID`)
-- `DB-Api-Key` ← `DB_TIMETABLES_API_KEY` (or `DB_API_KEY`)
-
-```bash
-export DB_TIMETABLES_CLIENT_ID=...
-export DB_TIMETABLES_API_KEY=...
-db-timetables-pp-cli doctor
-```
-
-Auth is configured only when **both** values are present. Do not commit keys. The API is free for personal use; each user brings their own Anwendung.
+Marketplace Anwendung credentials. Every request must send both headers: DB-Client-Id from DB_TIMETABLES_CLIENT_ID (or DB_CLIENT_ID) and DB-Api-Key from DB_TIMETABLES_API_KEY (or DB_API_KEY). Auth is configured only when both values are present. Create an Anwendung, subscribe it to Timetables, and export the two env vars. Do not commit keys.
 
 ## Quick Start
 
@@ -58,9 +45,8 @@ db-timetables-pp-cli platforms --eva-no 8000105 --dry-run
 
 # Cancellations this hour.
 db-timetables-pp-cli cancellations --eva-no 8000105 --dry-run
-```
 
-With credentials exported, drop `--dry-run` and add `--json` or `--agent`.
+```
 
 ## Build
 
@@ -78,10 +64,9 @@ make test
 
 ## Unique Features
 
-These capabilities are the product thesis — not hollow generated insight/health/coverage/stale commands.
+These capabilities aren't available in any other tool for this API.
 
 ### Live station board
-
 - **`board`** — See the live board for one station this hour: planned trains with delays, platform moves, and cancels overlaid.
 
   _Reach for this instead of calling plan and fchg separately when a traveler or agent wants the truth at a station._
@@ -91,23 +76,30 @@ These capabilities are the product thesis — not hollow generated insight/healt
   ```
 - **`platforms`** — List only the trains at a station whose platform changed.
 
+  _Use this when the question is which platforms moved, not the full board._
+
   ```bash
   db-timetables-pp-cli platforms --eva-no 8000105 --json
   ```
 - **`cancellations`** — List cancellations at a station for the current hour.
+
+  _Use this when the question is what was cancelled, not every delay._
 
   ```bash
   db-timetables-pp-cli cancellations --eva-no 8000105 --json
   ```
 - **`delays`** — List late trains at a station with delay minutes.
 
+  _Use this for late-but-running trains; cancellations are a different command._
+
   ```bash
   db-timetables-pp-cli delays --eva-no 8000105 --json
   ```
 
 ### Local state that compounds
-
 - **`watch`** — Apply the last two minutes of rchg onto a cached plan+fchg snapshot.
+
+  _Use this to poll cheaply after board/fchg; do not use it as the first fetch._
 
   ```bash
   db-timetables-pp-cli watch --eva-no 8000105 --json
@@ -152,11 +144,15 @@ Turn a name into EVA 8000105 before any board call.
 db-timetables-pp-cli board --eva-no 8000105 --agent --select train,planned_time,delay_minutes,platform,cancelled
 ```
 
+Overlay plan+fchg and keep only the fields an agent needs.
+
 ### Platform changes
 
 ```bash
 db-timetables-pp-cli platforms --eva-no 8000105 --json
 ```
+
+Only trains whose platform moved.
 
 ### Cancellations this hour
 
@@ -164,11 +160,15 @@ db-timetables-pp-cli platforms --eva-no 8000105 --json
 db-timetables-pp-cli cancellations --eva-no 8000105 --json
 ```
 
+Cancelled stops at the station for the current hour.
+
 ### Cheap poll after a snapshot
 
 ```bash
 db-timetables-pp-cli watch --eva-no 8000105 --json
 ```
+
+Apply rchg onto the cached plan+fchg slice.
 
 ## Usage
 
@@ -284,11 +284,10 @@ Environment variables:
 - `plan` date is `YYMMDD` and hour is `HH`
 
 ### API-specific
-
-- **401/403 from Marketplace** — both headers required on every call.
-- **empty station results for a German name with umlauts** — retry with EVA or DS100 (`FF`, `8000105`).
-- **plan looks on time but the train is late** — plan is static. Use `board` or `fchg`.
-- **429 / rate limit** — Marketplace is about 60 calls/min. Cache plan (static) and poll `rchg` after one `fchg` via `watch`.
+- **401/403 from Marketplace** — Export both DB_TIMETABLES_CLIENT_ID and DB_TIMETABLES_API_KEY. One header is not enough.
+- **empty station results for a German name with umlauts** — Retry with EVA or DS100 (FF, 8000105). The official station pattern does not handle umlauts well.
+- **plan looks on time but the train is late** — plan is static. Use board (plan+fchg overlay) or fchg.
+- **429 / rate limit** — Marketplace is about 60 calls/min. Cache plan (static) and poll rchg after one fchg via watch.
 
 ## What this is not
 

@@ -1,0 +1,8 @@
+{
+  "descriptions": {
+    "fchg_get": "Fetch all known future changes for one station (evaNo). Returns Timetable XML with changed time/platform/status. Prefer board for a joined live board; use this only for the raw full-change feed. Required: evaNo.",
+    "plan_get": "Fetch the static planned timetable for one station-hour. Required: evaNo, date (YYMMDD), hour (HH). Returns planned times/platforms only (no delays). Prefer board for the live overlay.",
+    "rchg_get": "Fetch changes that became known in the last two minutes for one station (evaNo). Smaller than fchg. Prefer watch after a cached plan+fchg snapshot. Required: evaNo.",
+    "station_get": "Look up stations by name prefix, EVA number, DS100/RL100 code, or wildcard. Returns station ids and names so you can resolve evaNo before board/plan/fchg. Required: pattern."
+  }
+}

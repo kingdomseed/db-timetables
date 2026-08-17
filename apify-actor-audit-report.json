@@ -1,5 +1,6 @@
 {
-  "dir": "\u003ccli-dir\u003e/db-timetables-pp-cli",
+  "dir": "\u003ccli-dir\u003e/db-timetables",
+  "research_dir": "\u003ccli-dir\u003e/20260817-111020-0fa51705",
   "verdict": "pass",
   "actors": null,
   "issues": [

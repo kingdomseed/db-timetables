@@ -25,7 +25,7 @@
   "tools": [
     {
       "name": "fchg_get",
-      "description": "Returns a Timetable object (see Timetable) that contains all known changes for the station given by evaNo. The data includes all known changes from now on until ndefinitely into the future. Once changes become obsolete (because their trip departs from the station) they are removed from this resource. Changes may include messages. On event level, they usually contain one or more of the 'changed' attributes ct, cp, cs or cpth. Changes may also include 'planned' attributes if there is no associated planned data for the change (e.g. an unplanned stop or trip). Full changes are updated every 30s and should be cached for that period by web caches. Required: evaNo (default: 8000105).",
+      "description": "Fetch all known future changes for one station (evaNo). Returns Timetable XML with changed time/platform/status. Prefer board for a joined live board; use this only for the raw full-change feed. Required: evaNo.",
       "method": "GET",
       "path": "/fchg/{evaNo}",
       "params": [
@@ -46,7 +46,7 @@
     },
     {
       "name": "plan_get",
-      "description": "Returns a Timetable object (see Timetable) that contains planned data for the specified station (evaNo) within the hourly time slice given by date (format YYMMDD) and hour (format HH). The data includes stops for all trips that arrive or depart within that slice. There is a small overlap between slices since some trips arrive in one slice and depart in another. Planned data does never contain messages. On event level, planned data contains the 'plannned' attributes pt, pp, ps and ppth while the 'changed' attributes ct, cp, cs and cpth are absent. Planned data is generated many hours in advance and is static, i.e. it does never change. It should be cached by web caches.public interface allows access to information about a station. Required: evaNo (default: 8000105), date (default: 220930), hour.",
+      "description": "Fetch the static planned timetable for one station-hour. Required: evaNo, date (YYMMDD), hour (HH). Returns planned times/platforms only (no delays). Prefer board for the live overlay.",
       "method": "GET",
       "path": "/plan/{evaNo}/{date}/{hour}",
       "params": [
@@ -81,7 +81,7 @@
     },
     {
       "name": "rchg_get",
-      "description": "Returns a Timetable object (see Timetable) that contains all recent changes for the station given by evaNo. Recent changes are always a subset of the full changes. They may equal full changes but are typically much smaller. Data includes only those changes that became known within the last 2 minutes. A client that updates its state in intervals of less than 2 minutes should load full changes initially and then proceed to periodically load only the recent changes in order to save bandwidth. Recent changes are updated every 30s as well and should be cached for that period by web caches. Required: evaNo (default: 8000105).",
+      "description": "Fetch changes that became known in the last two minutes for one station (evaNo). Smaller than fchg. Prefer watch after a cached plan+fchg snapshot. Required: evaNo.",
       "method": "GET",
       "path": "/rchg/{evaNo}",
       "params": [
@@ -102,7 +102,7 @@
     },
     {
       "name": "station_get",
-      "description": "This public interface allows access to information about a station. Required: pattern (default: BLS). Returns array of StationData.",
+      "description": "Look up stations by name prefix, EVA number, DS100/RL100 code, or wildcard. Returns station ids and names so you can resolve evaNo before board/plan/fchg. Required: pattern.",
       "method": "GET",
       "path": "/station/{pattern}",
       "params": [
