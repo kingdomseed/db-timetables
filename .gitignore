@@ -1,0 +1,16 @@
+# Built binaries (repo root only — do not ignore cmd/db-timetables-pp-cli/)
+/db-timetables
+/db-timetables-pp-cli
+*.exe
+
+# Secrets and local env
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+credentials.json
+secrets.json

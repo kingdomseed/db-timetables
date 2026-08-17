@@ -1,0 +1,72 @@
+{
+  "schema_version": 0,
+  "generated_at": "0001-01-01T00:00:00Z",
+  "printing_press_version": "",
+  "api_name": "db-timetables",
+  "cli_name": "db-timetables-pp-cli",
+  "spec_path": "openapi.json",
+  "description": "API for passenger information for train stations operated by DB Station&Service AG",
+  "novel_features": [
+    {
+      "name": "insight",
+      "command": "insight",
+      "description": "Computed guidance that turns a station pattern or EVA number into plan/fchg/rchg commands."
+    },
+    {
+      "name": "health",
+      "command": "health",
+      "description": "GROUP BY counts and percentages over locally synced timetable resources."
+    },
+    {
+      "name": "coverage",
+      "command": "coverage",
+      "description": "Coverage of expected station/fchg/rchg/plan slices in the local store."
+    },
+    {
+      "name": "stale",
+      "command": "stale",
+      "description": "Freshness insight for synced timetable slices versus a stale-after budget."
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "insight",
+      "command": "insight",
+      "description": "Computed guidance that turns a station pattern or EVA number into plan/fchg/rchg commands."
+    },
+    {
+      "name": "health",
+      "command": "health",
+      "description": "GROUP BY counts and percentages over locally synced timetable resources."
+    },
+    {
+      "name": "coverage",
+      "command": "coverage",
+      "description": "Coverage of expected station/fchg/rchg/plan slices in the local store."
+    },
+    {
+      "name": "stale",
+      "command": "stale",
+      "description": "Freshness insight for synced timetable slices versus a stale-after budget."
+    }
+  ],
+  "verify": {
+    "mode": "live",
+    "pass_rate": 97.14285714285714,
+    "passed": 34,
+    "total": 35,
+    "failed": 1,
+    "data_pipeline": true,
+    "verdict": "WARN"
+  },
+  "scorecard": {
+    "steinberger": {
+      "percentage": 96,
+      "grade": "A",
+      "total": 96
+    }
+  },
+  "base_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1",
+  "project_kind": "cli",
+  "version": "1.0.274"
+}

@@ -1,0 +1,51 @@
+version: 2
+project_name: db-timetables-pp-cli
+changelog:
+  disable: true
+builds:
+  - id: db-timetables-pp-cli
+    main: ./cmd/db-timetables-pp-cli
+    binary: db-timetables-pp-cli
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X db-timetables-pp-cli/internal/cli.version={{ .Version }}
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+      - linux_amd64
+      - linux_arm64
+      - windows_amd64
+      - windows_arm64
+  - id: db-timetables-pp-mcp
+    main: ./cmd/db-timetables-pp-mcp
+    binary: db-timetables-pp-mcp
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+      - linux_amd64
+      - linux_arm64
+      - windows_amd64
+      - windows_arm64
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+checksum:
+  name_template: checksums.txt
+brews:
+  - name: db-timetables-pp-cli
+    repository:
+      owner: 
+      name: homebrew-tap
+    homepage: "https://github.com//db-timetables-pp-cli"
+    description: "API for passenger information for train stations operated by DB Station&Service AG"
+    install: |
+      bin.install "db-timetables-pp-cli"
+      bin.install "db-timetables-pp-mcp"

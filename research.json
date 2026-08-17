@@ -1,0 +1,107 @@
+{
+  "api_name": "db-timetables",
+  "novelty_score": 7,
+  "alternatives": null,
+  "gaps": [],
+  "patterns": [],
+  "recommendation": "",
+  "researched_at": "0001-01-01T00:00:00Z",
+  "novel_features": [
+    {
+      "name": "insight",
+      "command": "insight",
+      "description": "Computed guidance that turns a station pattern or EVA number into plan/fchg/rchg commands.",
+      "rationale": "Operators need a station-to-command map that the raw Timetables spec does not provide.",
+      "example": "db-timetables-pp-cli insight --pattern BLS --json"
+    },
+    {
+      "name": "health",
+      "command": "health",
+      "description": "GROUP BY counts and percentages over locally synced timetable resources.",
+      "rationale": "Local store insight without another Marketplace call.",
+      "example": "db-timetables-pp-cli health --json"
+    },
+    {
+      "name": "coverage",
+      "command": "coverage",
+      "description": "Coverage of expected station/fchg/rchg/plan slices in the local store.",
+      "rationale": "Shows which timetable slices are still missing after sync.",
+      "example": "db-timetables-pp-cli coverage --json"
+    },
+    {
+      "name": "stale",
+      "command": "stale",
+      "description": "Freshness insight for synced timetable slices versus a stale-after budget.",
+      "rationale": "Marketplace quota makes it important to know when local data is old.",
+      "example": "db-timetables-pp-cli stale --stale-after 30m --json"
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "insight",
+      "command": "insight",
+      "description": "Computed guidance that turns a station pattern or EVA number into plan/fchg/rchg commands.",
+      "rationale": "Operators need a station-to-command map that the raw Timetables spec does not provide.",
+      "example": "db-timetables-pp-cli insight --pattern BLS --json"
+    },
+    {
+      "name": "health",
+      "command": "health",
+      "description": "GROUP BY counts and percentages over locally synced timetable resources.",
+      "rationale": "Local store insight without another Marketplace call.",
+      "example": "db-timetables-pp-cli health --json"
+    },
+    {
+      "name": "coverage",
+      "command": "coverage",
+      "description": "Coverage of expected station/fchg/rchg/plan slices in the local store.",
+      "rationale": "Shows which timetable slices are still missing after sync.",
+      "example": "db-timetables-pp-cli coverage --json"
+    },
+    {
+      "name": "stale",
+      "command": "stale",
+      "description": "Freshness insight for synced timetable slices versus a stale-after budget.",
+      "rationale": "Marketplace quota makes it important to know when local data is old.",
+      "example": "db-timetables-pp-cli stale --stale-after 30m --json"
+    }
+  ],
+  "narrative": {
+    "quickstart": [
+      {
+        "command": "db-timetables-pp-cli insight --pattern BLS --json"
+      },
+      {
+        "command": "db-timetables-pp-cli station --pattern BLS --dry-run"
+      },
+      {
+        "command": "db-timetables-pp-cli fchg --eva-no 8000105 --dry-run"
+      },
+      {
+        "command": "db-timetables-pp-cli rchg --eva-no 8000105 --dry-run"
+      },
+      {
+        "command": "db-timetables-pp-cli plan 12 --eva-no 8000105 --date 220930 --dry-run"
+      },
+      {
+        "command": "db-timetables-pp-cli health --json"
+      },
+      {
+        "command": "db-timetables-pp-cli coverage --json"
+      },
+      {
+        "command": "db-timetables-pp-cli stale --json"
+      }
+    ],
+    "recipes": [
+      {
+        "title": "",
+        "command": "db-timetables-pp-cli station --pattern BLS --dry-run"
+      },
+      {
+        "title": "",
+        "command": "db-timetables-pp-cli plan 12 --eva-no 8000105 --date 220930 --dry-run"
+      }
+    ]
+  }
+}

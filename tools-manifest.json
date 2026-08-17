@@ -1,0 +1,134 @@
+{
+  "api_name": "db-timetables",
+  "base_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1",
+  "description": "API for passenger information for train stations operated by DB Station&Service AG",
+  "mcp_ready": "full",
+  "http_transport": "standard",
+  "auth": {
+    "type": "api_key",
+    "header": "DB-Client-ID",
+    "in": "header",
+    "env_vars": [
+      "DB_TIMETABLES_CLIENT_ID",
+      "DB_TIMETABLES_API_KEY"
+    ],
+    "env_var_specs": [
+      {
+        "name": "DB_TIMETABLES_CLIENT_ID",
+        "kind": "per_call",
+        "required": true,
+        "sensitive": true,
+        "inferred": true
+      },
+      {
+        "name": "DB_TIMETABLES_API_KEY",
+        "kind": "per_call",
+        "required": true,
+        "sensitive": true,
+        "inferred": true
+      }
+    ],
+    "sibling_header": "DB-Api-Key"
+  },
+  "required_headers": [],
+  "tools": [
+    {
+      "name": "fchg_get",
+      "description": "Returns a Timetable object (see Timetable) that contains all known changes for the station given by evaNo. The data includes all known changes from now on until ndefinitely into the future. Once changes become obsolete (because their trip departs from the station) they are removed from this resource. Changes may include messages. On event level, they usually contain one or more of the 'changed' attributes ct, cp, cs or cpth. Changes may also include 'planned' attributes if there is no associated planned data for the change (e.g. an unplanned stop or trip). Full changes are updated every 30s and should be cached for that period by web caches. Required: evaNo (default: 8000105).",
+      "method": "GET",
+      "path": "/fchg/{evaNo}",
+      "params": [
+        {
+          "name": "evaNo",
+          "type": "string",
+          "location": "path",
+          "description": "Station EVA-number.",
+          "required": true
+        }
+      ],
+      "header_overrides": [
+        {
+          "name": "Accept",
+          "value": "application/xml"
+        }
+      ]
+    },
+    {
+      "name": "plan_get",
+      "description": "Returns a Timetable object (see Timetable) that contains planned data for the specified station (evaNo) within the hourly time slice given by date (format YYMMDD) and hour (format HH). The data includes stops for all trips that arrive or depart within that slice. There is a small overlap between slices since some trips arrive in one slice and depart in another. Planned data does never contain messages. On event level, planned data contains the 'plannned' attributes pt, pp, ps and ppth while the 'changed' attributes ct, cp, cs and cpth are absent. Planned data is generated many hours in advance and is static, i.e. it does never change. It should be cached by web caches.public interface allows access to information about a station. Required: evaNo (default: 8000105), date (default: 220930), hour.",
+      "method": "GET",
+      "path": "/plan/{evaNo}/{date}/{hour}",
+      "params": [
+        {
+          "name": "evaNo",
+          "type": "string",
+          "location": "path",
+          "description": "Station EVA-number.",
+          "required": true
+        },
+        {
+          "name": "date",
+          "type": "string",
+          "location": "path",
+          "description": "Date in format YYMMDD.",
+          "required": true
+        },
+        {
+          "name": "hour",
+          "type": "string",
+          "location": "path",
+          "description": "Hour in format HH.",
+          "required": true
+        }
+      ],
+      "header_overrides": [
+        {
+          "name": "Accept",
+          "value": "application/xml"
+        }
+      ]
+    },
+    {
+      "name": "rchg_get",
+      "description": "Returns a Timetable object (see Timetable) that contains all recent changes for the station given by evaNo. Recent changes are always a subset of the full changes. They may equal full changes but are typically much smaller. Data includes only those changes that became known within the last 2 minutes. A client that updates its state in intervals of less than 2 minutes should load full changes initially and then proceed to periodically load only the recent changes in order to save bandwidth. Recent changes are updated every 30s as well and should be cached for that period by web caches. Required: evaNo (default: 8000105).",
+      "method": "GET",
+      "path": "/rchg/{evaNo}",
+      "params": [
+        {
+          "name": "evaNo",
+          "type": "string",
+          "location": "path",
+          "description": "Station EVA-number.",
+          "required": true
+        }
+      ],
+      "header_overrides": [
+        {
+          "name": "Accept",
+          "value": "application/xml"
+        }
+      ]
+    },
+    {
+      "name": "station_get",
+      "description": "This public interface allows access to information about a station. Required: pattern (default: BLS). Returns array of StationData.",
+      "method": "GET",
+      "path": "/station/{pattern}",
+      "params": [
+        {
+          "name": "pattern",
+          "type": "string",
+          "location": "path",
+          "description": "can be a station name (prefix), eva number, ds100/rl100 code, wildcard (*); doesn't seem to work with umlauten in station name (prefix)",
+          "required": true
+        }
+      ],
+      "header_overrides": [
+        {
+          "name": "Accept",
+          "value": "application/xml"
+        }
+      ]
+    }
+  ]
+}
