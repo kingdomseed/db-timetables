@@ -1,7 +1,7 @@
 {
   "api_name": "db-timetables",
   "base_url": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1",
-  "description": "API for passenger information for train stations operated by DB Station&Service AG",
+  "description": "Official station boards: delay, platform, cancel — not a journey planner.",
   "mcp_ready": "full",
   "http_transport": "standard",
   "auth": {
@@ -9,8 +9,7 @@
     "header": "DB-Client-ID",
     "in": "header",
     "env_vars": [
-      "DB_TIMETABLES_CLIENT_ID",
-      "DB_TIMETABLES_API_KEY"
+      "DB_TIMETABLES_CLIENT_ID"
     ],
     "env_var_specs": [
       {
@@ -18,17 +17,9 @@
         "kind": "per_call",
         "required": true,
         "sensitive": true,
-        "inferred": true
-      },
-      {
-        "name": "DB_TIMETABLES_API_KEY",
-        "kind": "per_call",
-        "required": true,
-        "sensitive": true,
-        "inferred": true
+        "description": "Marketplace client id sent as DB-Client-Id. Also accepts DB_CLIENT_ID."
       }
-    ],
-    "sibling_header": "DB-Api-Key"
+    ]
   },
   "required_headers": [],
   "tools": [

@@ -1,0 +1,6 @@
+{
+  "source_name": "db-timetables",
+  "decision": "skip-silent",
+  "reason": "user-provided-spec",
+  "asked_at": "2026-08-17T11:10:20Z"
+}

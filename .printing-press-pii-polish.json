@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-08-17T11:24:53.697970148Z",
+  "cli_dir": "\u003ccli-dir\u003e/db-timetables-pp-cli",
+  "findings": [
+    {
+      "kind": "email",
+      "file": "openapi.json",
+      "line": 831,
+      "column": 17,
+      "matched_span": "dbopendata@deutschebahn.com",
+      "status": "accepted",
+      "category": "api_provider_data",
+      "evidence_context": "openapi.json info.contact.email in the official Deutsche Bahn Timetables 1.0.274 OpenAPI document (info.title Timetables; termsOfService data.deutschebahn.com). Vendor published support contact, not customer PII."
+    }
+  ],
+  "findings_count_before": 1
+}

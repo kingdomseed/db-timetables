@@ -1,7 +1,7 @@
 ---
 name: pp-db-timetables
-description: "Printing Press CLI for Db Timetables. API for passenger information for train stations operated by DB Station&Service AG"
-author: ""
+description: "Official station boards: delay, platform, cancel — not a journey planner. Trigger phrases: `Frankfurt Hbf delays`, `which platform did my ICE move to`, `cancellations at Berlin Hbf this hour`, `live station board Deutsche Bahn`, `use db-timetables`, `run db-timetables`."
+author: "Jason Holt"
 license: "Apache-2.0"
 argument-hint: "<command> [args] | install cli|mcp"
 allowed-tools: "Read Bash"
@@ -10,9 +10,13 @@ metadata:
     requires:
       bins:
         - db-timetables-pp-cli
+    install:
+      - kind: go
+        bins: [db-timetables-pp-cli]
+        module: github.com/mvanhorn/printing-press-library/library/travel/db-timetables/cmd/db-timetables-pp-cli
 ---
 
-# Db Timetables — Printing Press CLI
+# Deutsche Bahn Timetables — Printing Press CLI
 
 ## Prerequisites: Install the CLI
 
@@ -25,53 +29,72 @@ This skill drives the `db-timetables-pp-cli` binary. **You must verify the CLI i
 2. Verify: `db-timetables-pp-cli --version`
 3. Ensure the reported install directory is on `$PATH` for the agent/runtime that will invoke this skill.
 
-If the `npx` install fails before this CLI has a public-library category, install Node or use the category-specific Go fallback after publish.
+If the `npx` install fails (no Node, offline, etc.), fall back to a direct Go install (requires Go 1.26.5 or newer). This installs into `$GOPATH/bin` (default `$HOME/go/bin`), so add that directory to `$PATH` instead:
+
+```bash
+go install github.com/mvanhorn/printing-press-library/library/travel/db-timetables/cmd/db-timetables-pp-cli@latest
+```
 
 If `--version` reports "command not found" after install, the runtime cannot see the binary directory on `$PATH`. Do not proceed with skill commands until verification succeeds.
 
-API for passenger information for train stations operated by DB Station&Service AG
+A Go CLI for Deutsche Bahn's Marketplace Timetables API. Resolve a station, pull the hourly plan, overlay live changes, and keep a local slice so an agent can ask follow-ups without burning quota. This is not A to B, fares, or booking.
 
-## When Not to Use This CLI
+## When to Use This CLI
 
-Do not activate this CLI for requests that require creating, updating, deleting, publishing, commenting, upvoting, inviting, ordering, sending messages, booking, purchasing, or changing remote state. This printed CLI exposes read-only commands for inspection, export, sync, and analysis.
+Use this CLI when the task is a station board: resolve EVA, show planned trains for an hour, overlay delays/platform/cancel, or poll recent changes. Prefer board for the live picture, platforms/cancellations/delays for filtered questions, and watch after a snapshot.
+
+## Anti-triggers
+
+Do not use this CLI for:
+- Do not use this CLI to plan an A to B journey or local-transit itinerary.
+- Do not use this CLI to quote fares or book tickets.
+- Do not use this CLI to scrape bahn.de or DB Navigator.
+- Do not use this CLI as a substitute for the official DB Navigator consumer app.
 
 ## Unique Capabilities
 
 These capabilities aren't available in any other tool for this API.
-- **`insight`** — Computed guidance that turns a station pattern or EVA number into plan/fchg/rchg commands.
+
+### Live station board
+
+- **`board`** — See the live board for one station this hour: planned trains with delays, platform moves, and cancels overlaid.
+
+  _Reach for this instead of calling plan and fchg separately when a traveler or agent wants the truth at a station._
 
   ```bash
-  db-timetables-pp-cli insight --pattern BLS --json
+  db-timetables-pp-cli board --eva-no 8000105 --agent --select train,planned_time,delay_minutes,platform,cancelled
   ```
-- **`health`** — GROUP BY counts and percentages over locally synced timetable resources.
+- **`platforms`** — List only the trains at a station whose platform changed.
+
+  _Use this when the question is which platforms moved, not the full board._
 
   ```bash
-  db-timetables-pp-cli health --json
+  db-timetables-pp-cli platforms --eva-no 8000105 --json
   ```
-- **`coverage`** — Coverage of expected station/fchg/rchg/plan slices in the local store.
+- **`cancellations`** — List cancellations at a station for the current hour.
+
+  _Use this when the question is what was cancelled, not every delay._
 
   ```bash
-  db-timetables-pp-cli coverage --json
+  db-timetables-pp-cli cancellations --eva-no 8000105 --json
   ```
-- **`stale`** — Freshness insight for synced timetable slices versus a stale-after budget.
+- **`delays`** — List late trains at a station with delay minutes.
+
+  _Use this for late-but-running trains; cancellations are a different command._
 
   ```bash
-  db-timetables-pp-cli stale --stale-after 30m --json
+  db-timetables-pp-cli delays --eva-no 8000105 --json
   ```
 
-## Recipes
+### Local state that compounds
 
-### 
+- **`watch`** — Apply the last two minutes of rchg onto a cached plan+fchg snapshot.
 
-```bash
-db-timetables-pp-cli station --pattern BLS --dry-run
-```
+  _Use this to poll cheaply after board/fchg; do not use it as the first fetch._
 
-### 
-
-```bash
-db-timetables-pp-cli plan 12 --eva-no 8000105 --date 220930 --dry-run
-```
+  ```bash
+  db-timetables-pp-cli watch --eva-no 8000105 --json
+  ```
 
 ## Command Reference
 
@@ -91,13 +114,6 @@ db-timetables-pp-cli plan 12 --eva-no 8000105 --date 220930 --dry-run
 
 - `db-timetables-pp-cli station` — This public interface allows access to information about a station.
 
-**insight** — Computed timetable workflow
-
-- `db-timetables-pp-cli insight --pattern BLS` — Explain how to turn a station pattern or EVA number into plan/fchg/rchg commands.
-
-**sync** — Local store
-
-- `db-timetables-pp-cli sync --eva-no 8000105 --pattern BLS` — Fetch station/fchg/rchg/plan into the local SQLite store.
 
 ### Finding the right command
 
@@ -109,15 +125,52 @@ db-timetables-pp-cli which "<capability in your own words>"
 
 `which` resolves a natural-language capability query to the best matching command from this CLI's curated feature index. Exit code `0` means at least one match; exit code `2` means no confident match — fall back to `--help` or use a narrower query.
 
-## Auth Setup
-Run `db-timetables-pp-cli auth setup` to print the URL and steps for getting a key (add `--launch` to open the URL). Then set:
+## Recipes
+
+
+### Resolve Frankfurt Hbf
 
 ```bash
-export DB_TIMETABLES_CLIENT_ID="<your-client-id>"
-export DB_TIMETABLES_API_KEY="<your-api-key>"
+db-timetables-pp-cli station --pattern Frankfurt --agent --select stations.eva,stations.name,stations.ds100
 ```
 
-To persist credentials, use `db-timetables-pp-cli auth set-token <token>`. Stored secrets live in `credentials.toml` under the data dir, not in `config.toml`.
+Turn a name into EVA 8000105 before any board call.
+
+### Live board this hour
+
+```bash
+db-timetables-pp-cli board --eva-no 8000105 --agent --select train,planned_time,delay_minutes,platform,cancelled
+```
+
+Overlay plan+fchg and keep only the fields an agent needs.
+
+### Platform changes
+
+```bash
+db-timetables-pp-cli platforms --eva-no 8000105 --json
+```
+
+Only trains whose platform moved.
+
+### Cancellations this hour
+
+```bash
+db-timetables-pp-cli cancellations --eva-no 8000105 --json
+```
+
+Cancelled stops at the station for the current hour.
+
+### Cheap poll after a snapshot
+
+```bash
+db-timetables-pp-cli watch --eva-no 8000105 --json
+```
+
+Apply rchg onto the cached plan+fchg slice.
+
+## Auth Setup
+
+Marketplace Anwendung credentials. Every request must send both headers: DB-Client-Id from DB_TIMETABLES_CLIENT_ID (or DB_CLIENT_ID) and DB-Api-Key from DB_TIMETABLES_API_KEY (or DB_API_KEY). Auth is configured only when both values are present. Create an Anwendung, subscribe it to Timetables, and export the two env vars. Do not commit keys.
 
 Run `db-timetables-pp-cli doctor` to verify setup.
 
@@ -129,7 +182,7 @@ Add `--agent` to any command. Expands to: `--json --compact --no-input --no-colo
 - **Filterable** — `--select` keeps a subset of fields. Dotted paths descend into nested structures; arrays traverse element-wise. Critical for keeping context small on verbose APIs:
 
   ```bash
-  db-timetables-pp-cli fchg --eva-no 8000105 --agent --select eva,m,s
+  db-timetables-pp-cli fchg --eva-no example-value --agent --select eva,m,s
   ```
 - **Previewable** — `--dry-run` shows the request without sending
 - **Offline-friendly** — sync/search commands can use the local SQLite store when available
@@ -399,7 +452,7 @@ A profile is a saved set of flag values, reused across invocations. Use it when 
 
 ```
 db-timetables-pp-cli profile save briefing --json
-db-timetables-pp-cli --profile briefing fchg --eva-no 8000105
+db-timetables-pp-cli --profile briefing fchg --eva-no example-value
 db-timetables-pp-cli profile list --json
 db-timetables-pp-cli profile show briefing
 db-timetables-pp-cli profile delete briefing --yes
@@ -429,13 +482,15 @@ Parse `$ARGUMENTS`:
 
 ## MCP Server Installation
 
-Install the MCP binary from this CLI's published public-library entry or pre-built release, then register it:
-
-```bash
-claude mcp add db-timetables-pp-mcp -- db-timetables-pp-mcp
-```
-
-Verify: `claude mcp list`
+1. Install the MCP server:
+   ```bash
+   go install github.com/mvanhorn/printing-press-library/library/travel/db-timetables/cmd/db-timetables-pp-mcp@latest
+   ```
+2. Register with Claude Code:
+   ```bash
+   claude mcp add db-timetables-pp-mcp -- db-timetables-pp-mcp
+   ```
+3. Verify: `claude mcp list`
 
 ## Direct Use
 

@@ -42,10 +42,10 @@ checksum:
 brews:
   - name: db-timetables-pp-cli
     repository:
-      owner: 
+      owner: jason-holt
       name: homebrew-tap
-    homepage: "https://github.com//db-timetables-pp-cli"
-    description: "API for passenger information for train stations operated by DB Station&Service AG"
+    homepage: "https://github.com/jason-holt/db-timetables-pp-cli"
+    description: "Official station boards: delay, platform, cancel — not a journey planner."
     install: |
       bin.install "db-timetables-pp-cli"
       bin.install "db-timetables-pp-mcp"
